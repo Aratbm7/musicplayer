@@ -9,13 +9,16 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
-
-from decouple import config
-from pathlib import Path
-from datetime import timedelta
-from django.contrib.sites.shortcuts import get_current_site
 import os
+from django.contrib.sites.shortcuts import get_current_site
+from datetime import timedelta
+from pathlib import Path
+from decouple import config
+import django
+from django.utils.encoding import smart_str
+django.utils.encoding.smart_text = smart_str
+
+#
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,15 +48,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'djoser',
-    'core',
-    'social_django', # social 
+    'social_django',  # social
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    # 'captcha_admin',
+    'recaptcha',
+    'django_celery_beat',
+    'core',
     'musics',
 ]
 
 MIDDLEWARE = [
-    'social_django.middleware.SocialAuthExceptionMiddleware',  # social 
+    'social_django.middleware.SocialAuthExceptionMiddleware',  # social
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -61,7 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "debug_toolbar.middleware.DebugToolbarMiddleware", 
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 
 ]
 
@@ -70,7 +76,7 @@ ROOT_URLCONF = 'musicplayer.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR , 'build')],
+        'DIRS': [os.path.join(BASE_DIR, 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,8 +84,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends', # social 
-                'social_django.context_processors.login_redirect',  # social 
+                'social_django.context_processors.backends',  # social
+                'social_django.context_processors.login_redirect',  # social
 
             ],
         },
@@ -178,7 +184,7 @@ REST_FRAMEWORK = {
     ),
 }
 
- # social 
+# social
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
@@ -186,11 +192,11 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-   'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule' ,
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 
 }
@@ -216,10 +222,10 @@ DJOSER = {
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': ['http://localhost:8000/google', 'http://localhost:8000/facebook'],
 
     'SERIALIZERS': {
-    'user': 'core.serializers.UserSerializer',
-    'current_user': 'core.serializers.UserSerializer',
-    'user_create': 'core.serializers.UserCreateSerializer',
-    # 'username_reset_confirm': 'core.serializers.ResetUsernameConfirmSerializer',
+        'user': 'core.serializers.UserSerializer',
+        'current_user': 'core.serializers.UserSerializer',
+        'user_create': 'core.serializers.UserCreateSerializer',
+        # 'username_reset_confirm': 'core.serializers.ResetUsernameConfirmSerializer',
 
 
     },
@@ -234,11 +240,6 @@ DJOSER = {
     #  }
 }
 
-    
-
-
-
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -249,10 +250,24 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 # DEFAULT_FROM_EMAIL = 'behnammohammadi149@gmail.com'
 # ACCOUNT_EMAIL_VERIFICATION = 'none'
 
- # social 
+# social
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'openid']
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/userinfo.email',
+                                   'https://www.googleapis.com/auth/userinfo.profile', 'openid']
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
 
 
+GR_CAPTCHA_SECRET_KEY = config('GR_CAPTCHA_SECRET_KEY')
+# for admin panel
+RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
+
+
+# CELERY_BROKER_URL = 'redis://localhost:6379/1'
+# CELERY_BEAT_SCHEDULE = {
+#     'delete_unactive_users': {
+#         'task': 'core.tasks.delete_unactive_users',
+#         'schedule': 1
+#     }
+# }
