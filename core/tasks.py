@@ -12,8 +12,3 @@ def delete_unactive_users():
 
     print('All unactive users successfully removed!!!.')
     return True
-
-
-@shared_task
-def hello():
-    print('say Hi!!')

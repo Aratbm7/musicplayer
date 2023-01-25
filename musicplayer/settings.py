@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'social_django',  # social
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg',
     # 'captcha_admin',
     'recaptcha',
     'django_celery_beat',
@@ -101,7 +102,7 @@ WSGI_APPLICATION = 'musicplayer.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'music',
+        'NAME': 'music1',
         'USER': 'bm7',
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': '127.0.0.1',
@@ -182,6 +183,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
 # social
@@ -264,10 +266,10 @@ RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
 
 
-# CELERY_BROKER_URL = 'redis://localhost:6379/1'
-# CELERY_BEAT_SCHEDULE = {
-#     'delete_unactive_users': {
-#         'task': 'core.tasks.delete_unactive_users',
-#         'schedule': 1
-#     }
-# }
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
+CELERY_BEAT_SCHEDULE = {
+    'delete_unactive_users': {
+        'task': 'core.tasks.delete_unactive_users',
+        'schedule': 5
+    }
+}
