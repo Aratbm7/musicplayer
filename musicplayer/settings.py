@@ -270,6 +270,7 @@ CELERY_BROKER_URL = 'redis://localhost:6379/1'
 CELERY_BEAT_SCHEDULE = {
     'delete_unactive_users': {
         'task': 'core.tasks.delete_unactive_users',
+
         'schedule': 5
     }
 }

@@ -1,9 +1,9 @@
 from rest_framework.viewsets import ModelViewSet
 from .serializers import (
-    ProfileSerilizer, PutProfileSerializer, AlbumSerializer)
+    ProfileSerilizer, PutProfileSerializer, AlbumSerializer, SongSerializer)
 from rest_framework import permissions
-from .permissions import ProfilePermissions, AlbumPermissions
-from .models import (Profile, Album)
+from .permissions import ProfilePermissions, AlbumPermissions, SongPermissions, personal_permissions
+from .models import (Profile, Album, Song)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -12,7 +12,8 @@ from django.shortcuts import get_object_or_404
 class ProfileViewSet(ModelViewSet):
     http_method_names = ['get', 'put', 'patch', 'delete', 'option']
     queryset = Profile.objects.select_related('user').all()
-    permission_classes = [ProfilePermissions]
+    permission_classes = [personal_permissions(
+        {'u': 1, 'o': 0, }), ProfilePermissions]
     lookup_field = 'slug'
 
     def get_serializer_class(self):
@@ -53,7 +54,8 @@ class AlbumViewSet(ModelViewSet):
     queryset = Album.objects.select_related('profile')\
         .prefetch_related('songs').all()
     serializer_class = AlbumSerializer
-    permission_classes = [AlbumPermissions]
+    permission_classes = [personal_permissions(
+        {'u': 31, 'o': 3}), AlbumPermissions]
     lookup_field = 'slug'
 
     # def get_permissions(self):
@@ -70,7 +72,6 @@ class AlbumViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user_id = self.request.user.id
         profile_id = Profile.objects.get(user_id=user_id).id
-        print(self.request.data)
         return serializer.save(profile_id=profile_id)
 
     @action(detail=False, methods=['GET'], permission_classes=[permissions.IsAuthenticated])
@@ -86,3 +87,16 @@ class AlbumViewSet(ModelViewSet):
 
             serializer = AlbumSerializer(my_albums, many=True)
             return Response(serializer.data)
+
+
+class SongViewSet(ModelViewSet):
+    http_method_names = ['post', 'get', 'options', 'heade', 'delete']
+    serializer_class = SongSerializer
+    permission_classes = [SongPermissions]
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Song.objects.filter(album__slug=self.kwargs['album_slug'])
+
+    def get_serializer_context(self):
+        return {'user_id': self.request.user.id, 'album_slug': self.kwargs['album_slug'], 'request': self.request}

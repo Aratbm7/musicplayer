@@ -72,7 +72,7 @@ class Album(models.Model):
         slug = slugify(self.title)
         unique_slug = slug
         num = 1
-        while Profile.objects.filter(slug=unique_slug).exists():
+        while Album.objects.filter(slug=unique_slug).exists():
             unique_slug = '{}-{}'.format(slug, num)
             num += 1
         return unique_slug
@@ -88,7 +88,28 @@ class Song(models.Model):
         Profile, on_delete=models.CASCADE, related_name='songs')
     album = models.ForeignKey(Album, models.RESTRICT, related_name='songs')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    slug = models.SlugField(max_length=500, unique=True,
+                            blank=False, null=False, db_index=True)
 
+    def save(self, *args, **kwargs):
+        print(self.music_file.name)
+        self.slug = self._generate_unique_slug()
+        super().save(*args, **kwargs)
+
+    def _generate_unique_slug(self):
+        """
+        Generate a unique slug using the user's username
+        """
+        slug = slugify(self.music_file.name.replace('.mp3', ''))
+        unique_slug = slug
+        num = 1
+        while Song.objects.filter(slug=unique_slug).exists():
+            unique_slug = '{}-{}'.format(slug, num)
+            num += 1
+        return unique_slug
+
+    def __str__(self):
+        return slugify(self.music_file.name)
 
 # class COMMAND(models.Model):
 #     song = models.ForeignKey(

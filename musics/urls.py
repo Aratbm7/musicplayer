@@ -1,6 +1,7 @@
 from django.urls import path, include
-from rest_framework.routers import Route, DynamicRoute, DefaultRouter
-from .views import (ProfileViewSet, AlbumViewSet)
+# from rest_framework.routers import Route, DynamicRoute, DefaultRouter
+from rest_framework_nested import routers
+from .views import (ProfileViewSet, AlbumViewSet, SongViewSet)
 
 
 # class CustomRouter(DefaultRouter):
@@ -21,11 +22,15 @@ from .views import (ProfileViewSet, AlbumViewSet)
 #     ]
 
 
-router = DefaultRouter()
+router = routers.DefaultRouter()
 router.register('profiles', ProfileViewSet, basename='profiles')
-router.register('albums', AlbumViewSet, basename='alubms')
+router.register('albums', AlbumViewSet, basename='albums')
+
+album_router = routers.NestedDefaultRouter(router, 'albums', lookup='album')
+album_router.register('songs', SongViewSet, basename='albums_songs')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('', include(album_router.urls), name='song-detail'),
 
 ]
