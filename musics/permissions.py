@@ -5,7 +5,6 @@ from django.db.models import Q
 from math import log2
 from collections import defaultdict
 
-
 action_dict = {
     'retrieve': 1,
     'list': 2,
@@ -27,7 +26,6 @@ def return_view_action_lists(input_dict, client_type):
 def personal_permissions(input_dict):
     send_dict = defaultdict(lambda: 63)
     print(send_dict)
-    print('-' * 60)
     send_dict.update(input_dict)
 
     class CustomPermisson(permissions.BasePermission):
@@ -40,8 +38,6 @@ def personal_permissions(input_dict):
             if request.user and request.user.is_authenticated:
                 if view.action in user_permisson_list:
                     return True
-                else:
-                    return False
 
             elif request.user.is_staff:
                 if view.action in admin_permisson_list:
@@ -51,10 +47,21 @@ def personal_permissions(input_dict):
                 if view.action in other_permisson_list:
                     return True
 
+            return False
+
     return CustomPermisson
 
 
 class ProfilePermissions(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        if not request.user and not request.user.is_authenticated:
+            return False
+
+        if view.action == 'list':
+            return bool(request.user.is_staff)
+
+        return True
 
     def has_object_permission(self, request, view, obj):
         # Deny actions on objects if the user is not authenticated
@@ -91,16 +98,22 @@ class AlbumPermissions(permissions.BasePermission):
 
 class SongPermissions(permissions.BasePermission):
 
+    def has_permission(self, request, view):
+        return True
+
     def has_object_permission(self, request, view, obj):
         if view.action == 'retrieve':
             return True
 
         elif view.action in ['create', 'destroy']:
-            profile_albums_list = get_object_or_404(
-                Profile, user_id=request.user.id).albums.all().values_list("id", flat=True)
-            album_id = get_object_or_404(
-                Album, slug=view.kwargs['album_slug']).id
-            return bool(request.user.is_authenticated and
-                        album_id in profile_albums_list)
+            if request.user.id:
+                profile_albums_list = get_object_or_404(
+                    Profile, user_id=request.user.id).albums.all().values_list("id", flat=True)
+                album_id = get_object_or_404(
+                    Album, slug=view.kwargs['album_slug']).id
+                return bool(request.user.is_authenticated and
+                            album_id in profile_albums_list)
+            else:
+                return False
         else:
             return False

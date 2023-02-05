@@ -2,6 +2,7 @@ from django.db import models
 from .validators import image_size, music_size, music_type
 from django.conf import settings
 from django.utils.text import slugify
+from .mediafunc import add_songs, add_images
 
 
 class Profile(models.Model):
@@ -16,7 +17,7 @@ class Profile(models.Model):
     ]
 
     image = models.ImageField(
-        upload_to='media/profie-images', validators=[image_size])
+        upload_to=add_images, validators=[image_size])
     user_mode = models.CharField(
         max_length=1, choices=USER_MODE, default=SILVER_USER)
     user = models.OneToOneField(
@@ -83,7 +84,7 @@ class Album(models.Model):
 
 class Song(models.Model):
     music_file = models.FileField(
-        upload_to='media/songs', validators=[music_type, music_size])
+        upload_to=add_songs, validators=[music_type, music_size])
     profile = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name='songs')
     album = models.ForeignKey(Album, models.RESTRICT, related_name='songs')

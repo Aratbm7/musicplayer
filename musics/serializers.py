@@ -3,15 +3,26 @@ from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework_nested.serializers import NestedHyperlinkedModelSerializer
+from django.contrib.auth import get_user_model
+
+
+class UserDomainSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'username', 'first_name',
+                  'last_name', 'email', 'is_active', 'url')
+        extra_kwargs = {
+            'url': {'lookup_field': 'id'}}
 
 
 class ProfileSerilizer(serializers.ModelSerializer):
+    user = UserDomainSerializer(read_only=True)
     slug = serializers.SlugField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['id', 'user_id', 'image', 'user_mode',
-                  'is_verified', 'is_upgraded', 'slug']
+        fields = ['id', 'image', 'user_mode',
+                  'is_verified', 'is_upgraded', 'slug', 'user']
         extra_kwargs = {
             'url': {'lookup_field': 'slug'}
         }
@@ -29,38 +40,20 @@ class PutProfileSerializer(serializers.ModelSerializer):
         }
 
 
-# class SongsHyperlink(serializers.HyperlinkedRelatedField):
-#     # We define these as class attributes, so we don't need to pass them as arguments.
-#     view_name = 'album-songs-detail'
-#     queryset = Song.objects.all()
+class ProfilelDomainSerializer(serializers.HyperlinkedModelSerializer):
+    user = UserDomainSerializer(read_only=True)
 
-#     def get_url(self, obj, view_name, request, format):
-#         url_kwargs = {
-#             'id': obj.id,
-#             'album_pk': obj.pk
-#         }
-#         return reverse(view_name, kwargs=url_kwargs, request=request, format=format)
-
-#     def get_object(self, view_name, view_args, view_kwargs):
-#         lookup_kwargs = {
-#             '': view_kwargs['organization_slug'],
-#             'pk': view_kwargs['customer_pk']
-#         }
-#         return self.get_queryset().get(**lookup_kwargs)
+    class Meta:
+        model = Profile
+        fields = ['id', 'url', 'image', 'user',
+                  'user_mode', 'is_verified', 'is_upgraded', 'slug']
+        extra_kwargs = {
+            'url': {'view_name': 'profiles-detail', 'lookup_field': 'slug'}, }
 
 
 class AlbumSerializer(serializers.HyperlinkedModelSerializer):
-    profile_id = serializers.IntegerField(read_only=True)
     slug = serializers.SlugField(read_only=True)
-    # songs = serializers.HyperlinkedRelatedField(
-    #     many=True, read_only=True, lookup_field='pk', view_name='albums_songs_detail')
-    # songs = serializers.HyperlinkedIdentityField(
-    #     view_name='albums_songs-list',
-    #     lookup_field='slug',
-    #     lookup_url_kwarg='album_slug', read_only=True,
-
-    # )
-
+    profile = ProfilelDomainSerializer(read_only=True)
     songs = NestedHyperlinkedRelatedField(
         many=True, read_only=True,
         view_name='albums_songs-detail',
@@ -71,7 +64,7 @@ class AlbumSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Album
         fields = ['id', 'title', 'created_at',
-                  'profile_id', 'slug', 'songs']
+                  'profile', 'slug', 'songs']
         extra_kwargs = {
             'url': {'lookup_field': 'slug', }
         }
@@ -91,13 +84,8 @@ class AlbumSerializerForSong(NestedHyperlinkedModelSerializer):
 
 class SongSerializer(serializers.ModelSerializer):
     slug = serializers.SlugField(read_only=True)
-
-    # album = NestedHyperlinkedRelatedField(
-    #     view_name='albums-detail',
-    #     lookup_field='slug',
-    #     read_only=True
-    # )
     album = AlbumSerializerForSong(read_only=True)
+    profile = ProfilelDomainSerializer(read_only=True)
     parent_lookup_kwargs = {
         'album_slug': 'album__slug'
     }
@@ -105,7 +93,7 @@ class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
         fields = ['id', 'music_file', 'uploaded_at',
-                  'profile_id', 'album', 'slug']
+                  'album', 'slug', 'profile']
         extra_kwargs = {
             'url': {'lookup_field': 'album_slug'},
         }

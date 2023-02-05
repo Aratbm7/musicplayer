@@ -228,9 +228,8 @@ DJOSER = {
         'current_user': 'core.serializers.UserSerializer',
         'user_create': 'core.serializers.UserCreateSerializer',
         # 'username_reset_confirm': 'core.serializers.ResetUsernameConfirmSerializer',
-
-
     },
+    'PERMISSIONS': {'user_delete': ['rest_framework.permissions.IsAdminUser'], },
 
     # 'PERMISSIONS': {
     #     'set_username': ['rest_framework.permissions.AllowAny'],
@@ -274,3 +273,14 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': 5
     }
 }
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/2",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
+#         },
+#         "KEY_PREFIX": "example"
+#     }
+# }

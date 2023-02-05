@@ -12,8 +12,7 @@ from django.shortcuts import get_object_or_404
 class ProfileViewSet(ModelViewSet):
     http_method_names = ['get', 'put', 'patch', 'delete', 'option']
     queryset = Profile.objects.select_related('user').all()
-    permission_classes = [personal_permissions(
-        {'u': 1, 'o': 0, }), ProfilePermissions]
+    permission_classes = [ProfilePermissions]
     lookup_field = 'slug'
 
     def get_serializer_class(self):
@@ -27,7 +26,8 @@ class ProfileViewSet(ModelViewSet):
     #     serializer = self.get_serializer(profile)
     #     return Response(serializer.data)
 
-    @action(detail=False, methods=['get', 'put', 'delete'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get', 'put', 'delete'], permission_classes=[permissions.IsAuthenticated],
+            )
     def me(self, request):
         user_id = self.request.user.id
         (profile, created) = Profile.objects.get_or_create(user_id=request.user.id)
@@ -49,13 +49,18 @@ class ProfileViewSet(ModelViewSet):
         def perform_update(self, serializer):
             return serializer.save(user_id=user_id)
 
+        def get_serializer_context(self):
+            print(self.request.method)
+            context = super(ProfileViewSet, self).get_serializer_context()
+            return context.update({'request': self.request})
+
 
 class AlbumViewSet(ModelViewSet):
     queryset = Album.objects.select_related('profile')\
         .prefetch_related('songs').all()
     serializer_class = AlbumSerializer
     permission_classes = [personal_permissions(
-        {'u': 31, 'o': 3}), AlbumPermissions]
+        {'u': 63, 'o': 3}), AlbumPermissions]
     lookup_field = 'slug'
 
     # def get_permissions(self):
