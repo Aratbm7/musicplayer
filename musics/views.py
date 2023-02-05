@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from .serializers import (
-    ProfileSerilizer, PutProfileSerializer, AlbumSerializer, SongSerializer)
+    ProfileSerilizer, PutProfileSerializer, ProfileSerilizerForMeAction, AlbumSerializer, SongSerializer)
 from rest_framework import permissions
 from .permissions import ProfilePermissions, AlbumPermissions, SongPermissions, personal_permissions
 from .models import (Profile, Album, Song)
@@ -25,6 +25,8 @@ class ProfileViewSet(ModelViewSet):
     #     profile = get_object_or_404(Profile, slug=slug)
     #     serializer = self.get_serializer(profile)
     #     return Response(serializer.data)
+    def get_serializer_context(self):
+        return {'request': self.request}
 
     @action(detail=False, methods=['get', 'put', 'delete'], permission_classes=[permissions.IsAuthenticated],
             )
@@ -32,7 +34,8 @@ class ProfileViewSet(ModelViewSet):
         user_id = self.request.user.id
         (profile, created) = Profile.objects.get_or_create(user_id=request.user.id)
         if request.method == 'GET':
-            serializer = ProfileSerilizer(profile)
+            serializer = ProfileSerilizer(
+                profile, context={'request': request})
             return Response(serializer.data)
 
         elif request.method == 'PUT':
