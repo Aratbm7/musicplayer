@@ -284,3 +284,5 @@ CELERY_BEAT_SCHEDULE = {
 #         "KEY_PREFIX": "example"
 #     }
 # }
+
+# http://127.0.0.1:8000/media/media/songs/2023/2/5/9/92f8cbd9f9b746e5b33401a6ccd0200f.mp3

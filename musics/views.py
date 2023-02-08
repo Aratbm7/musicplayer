@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from .serializers import (
-    ProfileSerilizer, PutProfileSerializer, ProfileSerilizerForMeAction, AlbumSerializer, SongSerializer)
+    ProfileSerilizer, PutProfileSerializer,  AlbumSerializer, SongSerializer)
 from rest_framework import permissions
 from .permissions import ProfilePermissions, AlbumPermissions, SongPermissions, personal_permissions
 from .models import (Profile, Album, Song)
